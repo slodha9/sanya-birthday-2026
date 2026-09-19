@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OASIS ACCESS // Birthday Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #05040c;
+    --panel: #0c0a1e;
+    --grid-line: #241b4d;
+    --cyan: #2ef4ff;
+    --magenta: #ff2fe0;
+    --hotpink: #ff6ec7;
+    --amber: #ffb020;
+    --violet: #9b4dff;
+    --text: #e9e6ff;
+    --dim: #8d86c4;
+    box-sizing: border-box;
+  }
+  *{ box-sizing: inherit; }
+  html,body{
+    height:100%;
+    margin:0;
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Chakra Petch', sans-serif;
+    overflow-x:hidden;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+  }
+  h1,h2,h3,.mono-title{
+    font-family:'Orbitron', sans-serif;
+  }
+
+  /* ---------- backdrop: retro horizon grid ---------- */
+  .backdrop{
+    position: fixed; inset:0; z-index:0; overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 16%, rgba(155,77,255,0.45), transparent 52%),
+      radial-gradient(ellipse at 15% 75%, rgba(255,47,224,0.18), transparent 45%),
+      radial-gradient(ellipse at 85% 80%, rgba(46,244,255,0.14), transparent 45%),
+      linear-gradient(180deg, #100826 0%, #05040c 45%, #05040c 100%);
+  }
+  .sun{
+    position:absolute; left:50%; top:14%; width:340px; height:340px;
+    transform:translateX(-50%);
+    border-radius:50%;
+    background: linear-gradient(180deg, var(--amber), var(--hotpink) 45%, var(--magenta) 70%, var(--violet));
+    box-shadow: 0 0 100px rgba(255,47,224,0.6), 0 0 180px rgba(155,77,255,0.45);
+    opacity:0.65;
+    filter: blur(1px);
+  }
+  .sun::after{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(180deg, transparent 0 6px, var(--void) 6px 10px);
+    opacity:0.5;
+  }
+  .horizon-grid{
+    position:absolute; left:0; right:0; bottom:0; height:52%;
+    perspective: 300px; perspective-origin: 50% 0%;
+    overflow:hidden;
+  }
+  .horizon-grid .plane{
+    position:absolute; inset:-50% 0 0 0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(255,47,224,0.3) 0, rgba(255,47,224,0.3) 1px, transparent 1px, transparent 48px),
+      repeating-linear-gradient(0deg, rgba(46,244,255,0.38) 0, rgba(46,244,255,0.38) 1px, transparent 1px, transparent 48px);
+    transform: rotateX(82deg);
+    animation: drift 4s linear infinite;
+  }
+  @keyframes drift{ from{ background-position: 0 0, 0 0; } to{ background-position: 0 0, 0 48px; } }
+  .scanlines{
+    position:fixed; inset:0; z-index:5; pointer-events:none;
+    background: repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 2px, transparent 3px);
+    mix-blend-mode: multiply;
+    opacity:0.5;
+  }
+  .vignette{
+    position:fixed; inset:0; z-index:6; pointer-events:none;
+    box-shadow: inset 0 0 18vw rgba(0,0,0,0.85);
+  }
+
+  /* ---------- layout ---------- */
+  .stage{
+    position:relative; z-index:10;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 28px 16px 40px;
+  }
+  .hud{
+    width:100%; max-width:560px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'Orbitron', sans-serif;
+    font-size:11px; letter-spacing: 0.12em;
+    color: var(--cyan);
+    margin-bottom:18px;
+    text-shadow: 0 0 8px rgba(46,244,255,0.6);
+  }
+  .hud .badge{
+    border:1px solid rgba(46,244,255,0.5);
+    padding:6px 12px;
+    border-radius:3px;
+    background: rgba(46,244,255,0.06);
+  }
+  .hud .badge.pink{
+    border-color: rgba(255,47,224,0.55);
+    background: rgba(255,47,224,0.07);
+    color: var(--hotpink);
+    text-shadow: 0 0 8px rgba(255,47,224,0.6);
+  }
+  .track{
+    width:100%; max-width:560px; height:5px; border-radius:3px;
+    background: rgba(255,255,255,0.08);
+    margin-bottom:26px;
+    overflow:hidden;
+    border:1px solid rgba(46,244,255,0.25);
+  }
+  .track-fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--cyan), var(--hotpink), var(--violet));
+    box-shadow: 0 0 12px var(--magenta);
+    transition: width 0.5s ease;
+  }
+
+  .panel{
+    width:100%; max-width:560px;
+    background: linear-gradient(180deg, rgba(24,14,46,0.88), rgba(8,6,20,0.92));
+    border: 1px solid rgba(255,47,224,0.3);
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(155,77,255,0.2), 0 20px 60px rgba(0,0,0,0.6), 0 0 55px rgba(255,47,224,0.16), 0 0 90px rgba(46,244,255,0.08);
+    padding: 26px 20px 22px;
+    position:relative;
+  }
+  .panel::before{
+    content:"";
+    position:absolute; left:16px; right:16px; top:0; height:1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--hotpink), transparent);
+  }
+
+  /* ---------- screens ---------- */
+  .screen{ display:none; width:100%; }
+  .screen.active{ display:flex; flex-direction:column; align-items:center; }
+
+  /* boot screen */
+  #boot .term{
+    font-size:12px; color: var(--cyan); line-height:1.7; text-align:left; width:100%;
+    min-height: 92px;
+    white-space: pre-wrap;
+  }
+  #boot .term .cursor{ display:inline-block; width:8px; background:var(--cyan); animation: blink 1s steps(1) infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .glitch-title{
+    font-size: clamp(28px, 7vw, 44px);
+    font-weight: 900;
+    text-align:center;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-shadow: 0 0 12px rgba(46,244,255,0.65), 0 0 26px rgba(255,47,224,0.55), 0 0 46px rgba(155,77,255,0.4);
+    margin: 18px 0 8px;
+    line-height:1.15;
+  }
+  .subtitle{
+    color: var(--dim);
+    text-align:center;
+    font-size:14px;
+    max-width:420px;
+    margin: 0 0 24px;
+    line-height:1.6;
+  }
+  .btn{
+    font-family:'Orbitron', sans-serif;
+    background: linear-gradient(180deg, rgba(46,244,255,0.18), rgba(123,63,255,0.18));
+    border: 1px solid var(--cyan);
+    color: var(--text);
+    padding: 14px 30px;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    border-radius: 5px;
+    cursor:pointer;
+    text-transform: uppercase;
+    box-shadow: 0 0 18px rgba(46,244,255,0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn:hover{ transform: translateY(-2px); box-shadow: 0 0 26px rgba(46,244,255,0.6); }
+  .btn:active{ transform: translateY(0); }
+  .btn.magenta{ border-color: var(--magenta); box-shadow: 0 0 18px rgba(255,63,216,0.35); }
+  .btn.magenta:hover{ box-shadow: 0 0 26px rgba(255,63,216,0.6); }
+
+  /* clue */
+  .clue-label{
+    font-family:'Orbitron', sans-serif;
+    font-size:10px; letter-spacing:0.18em; color: var(--amber);
+    text-shadow: 0 0 8px rgba(255,176,32,0.6);
+    margin-bottom:8px;
+  }
+  .clue-text{
+    font-size: 17px;
+    line-height:1.5;
+    text-align:center;
+    color: var(--text);
+    margin-bottom: 20px;
+    min-height: 48px;
+    padding: 0 6px;
+  }
+
+  /* grid */
+  #gridWrap{
+    width:100%;
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+  #grid{
+    display:flex; flex-direction:column; gap:7px;
+    align-items:center;
+    margin: 0 auto 20px;
+    width: max-content;
+  }
+  .row{ display:flex; gap:7px; }
+  .cell{
+    display:flex; align-items:center; justify-content:center;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    color: var(--text);
+    background: rgba(255,255,255,0.03);
+    text-transform:uppercase;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+  .cell.filled{ border-color: rgba(46,244,255,0.6); }
+  .cell.correct{ background: linear-gradient(180deg,#12c98a,#0a9468); border-color:#12c98a; color:#04140d; box-shadow:0 0 12px rgba(18,201,138,0.5); }
+  .cell.present{ background: linear-gradient(180deg,var(--amber),#c9860f); border-color:var(--amber); color:#241300; box-shadow:0 0 12px rgba(255,176,32,0.5); }
+  .cell.absent{ background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); color: var(--dim); }
+  .cell.pop{ animation: pop 0.15s ease; }
+  @keyframes pop{ 0%{ transform:scale(1);} 40%{ transform:scale(1.12);} 100%{ transform:scale(1);} }
+  .row.shake{ animation: shake 0.4s ease; }
+  @keyframes shake{ 10%,90%{transform:translateX(-4px);} 20%,80%{transform:translateX(6px);} 30%,50%,70%{transform:translateX(-8px);} 40%,60%{transform:translateX(8px);} }
+  .row.flip .cell{ animation: flip 0.45s ease forwards; }
+  @keyframes flip{ 0%{ transform: rotateX(0);} 50%{ transform: rotateX(90deg);} 100%{ transform: rotateX(0);} }
+
+  /* keyboard */
+  #keyboard{ display:flex; flex-direction:column; gap:7px; width:100%; align-items:center; }
+  .krow{ display:flex; gap:5px; }
+  .key{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    border-radius:4px;
+    padding: 11px 0;
+    min-width: 30px;
+    flex:1;
+    text-align:center;
+    font-size:13px;
+    cursor:pointer;
+    text-transform:uppercase;
+    user-select:none;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .key:active{ transform: scale(0.94); }
+  .key.wide{ flex:1.6; font-size:11px; letter-spacing:0.04em; }
+  .key.correct{ background: linear-gradient(180deg,#12c98a,#0a9468); border-color:#12c98a; color:#04140d; }
+  .key.present{ background: linear-gradient(180deg,var(--amber),#c9860f); border-color:var(--amber); color:#241300; }
+  .key.absent{ background: rgba(255,255,255,0.03); color:#4c477a; border-color: rgba(255,255,255,0.06); }
+
+  .msg{
+    font-family:'Orbitron', sans-serif;
+    font-size:11px; letter-spacing:0.1em;
+    color: var(--magenta);
+    text-shadow: 0 0 8px rgba(255,63,216,0.6);
+    height: 18px;
+    margin-bottom: 8px;
+    text-align:center;
+  }
+
+  /* result overlay */
+  .result-box{
+    text-align:center;
+  }
+  .result-tag{
+    font-family:'Orbitron', sans-serif;
+    font-size: 12px; letter-spacing:0.2em;
+    padding: 6px 16px;
+    border-radius: 3px;
+    display:inline-block;
+    margin-bottom: 16px;
+  }
+  .result-tag.win{ color:#12c98a; border:1px solid #12c98a; box-shadow:0 0 14px rgba(18,201,138,0.4); }
+  .result-tag.lose{ color:var(--magenta); border:1px solid var(--magenta); box-shadow:0 0 14px rgba(255,63,216,0.4); }
+  .answer-reveal{
+    font-family:'Orbitron', sans-serif;
+    font-size: clamp(20px,6vw,30px);
+    font-weight:700;
+    margin: 6px 0 4px;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(46,244,255,0.6);
+  }
+  .answer-clue{ color: var(--dim); font-size:13px; margin-bottom:14px; }
+  .result-comment{
+    color: var(--text);
+    font-size: 14.5px;
+    line-height:1.55;
+    max-width: 400px;
+    margin: 0 auto 24px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--magenta);
+    background: rgba(255,63,216,0.08);
+    border-radius: 0 6px 6px 0;
+    text-align:left;
+  }
+
+  /* finale */
+  #finale .glitch-title{ font-size: clamp(26px,7vw,40px); }
+  .recap{
+    width:100%; margin: 18px 0 24px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .recap-row{
+    display:flex; justify-content:space-between; gap:10px;
+    font-size:13px; padding:8px 12px;
+    border:1px solid rgba(46,244,255,0.18);
+    border-radius:5px;
+    background: rgba(46,244,255,0.04);
+  }
+  .recap-row .q{ color: var(--dim); }
+  .recap-row .a{ color: var(--cyan); font-family:'Orbitron',sans-serif; font-weight:700; letter-spacing:0.03em; text-align:right; }
+
+  .confetti{
+    position:fixed; top:-10px; z-index:30; pointer-events:none;
+    width:8px; height:14px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{ transform: translateY(110vh) rotate(600deg); opacity:0.9; }
+  }
+
+  footer{
+    position:relative; z-index:10;
+    text-align:center; color: var(--dim); font-size:11px;
+    margin-top:22px; letter-spacing:0.05em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count:1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="backdrop">
+  <div class="sun"></div>
+  <div class="horizon-grid"><div class="plane"></div></div>
+</div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div class="stage">
+
+  <div class="hud">
+    <span class="badge" id="hudLevel">SYSTEM: OASIS</span>
+    <span class="badge pink" id="hudGuesses">LINK STABLE</span>
+  </div>
+  <div class="track"><div class="track-fill" id="trackFill"></div></div>
+
+  <div class="panel">
+
+    <!-- BOOT / START -->
+    <div class="screen active" id="boot">
+      <div class="term" id="bootTerm"></div>
+      <div class="glitch-title">HAPPY BIRTHDAY,<br>SANYA</div>
+      <p class="subtitle">Ten memories are locked inside this terminal. Guess every word to unlock the ending. Nobody else on Earth could clear this level &mdash; only you, Sanya.</p>
+      <button class="btn" id="startBtn">Enter the OASIS</button>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="game">
+      <div class="clue-label">Clue <span id="clueIndex"></span></div>
+      <div class="clue-text" id="clueText"></div>
+      <div class="msg" id="msg"></div>
+      <div id="gridWrap"><div id="grid"></div></div>
+      <div id="keyboard"></div>
+    </div>
+
+    <!-- ROUND RESULT -->
+    <div class="screen" id="result">
+      <div class="result-box">
+        <div class="result-tag" id="resultTag">LEVEL CLEARED</div>
+        <div class="answer-reveal" id="resultAnswer"></div>
+        <div class="answer-clue" id="resultClue"></div>
+        <div class="result-comment" id="resultComment"></div>
+        <button class="btn magenta" id="continueBtn">Continue</button>
+      </div>
+    </div>
+
+    <!-- FINALE -->
+    <div class="screen" id="finale">
+      <div class="glitch-title">SYSTEM<br>UNLOCKED</div>
+      <p class="subtitle">You just speed-ran your own life story, Sanya. Happy birthday &mdash; here's everything you cleared along the way.</p>
+      <div class="recap" id="recapList"></div>
+      <button class="btn" id="replayBtn">Play again</button>
+    </div>
+
+  </div>
+
+  <footer>OASIS ACCESS TERMINAL &middot; BIRTHDAY BUILD &middot; FOR YOU, ALWAYS</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------- content: edit this array to change words/hints ----------------
+  var LEVELS = [
+    { clue: "What do I call you", display: "GOLU",
+      comment: "Yep, still Golu. You will be Golu at 60, at your own kid's wedding, everywhere." },
+    { clue: "What gives you wins and wings", display: "RED BULL",
+      comment: "Ma ma ma ma Max Verstappen." },
+    { clue: "What was the first concert you went for", display: "SUNBURN",
+      comment: "Ears still recovering, memory still worth every rupee." },
+    { clue: "Who did we tease you with in school", display: "NIHAL",
+      comment: "That aged well, huh?" },
+    { clue: "Which parent are you more similar to", display: "MOTHER",
+      comment: "Explains so much." },
+    { clue: "What is your comfort TV show", display: "THE BIG BANG THEORY",
+      comment: "Born to be Sheldon, forced to be Raj." },
+    { clue: "A city in which you have studied", display: "LONDON",
+      comment: "Wow." },
+    { clue: "What do you falsely claim Saakshi has broken of yours", display: "TOOTH",
+      comment: "For the record: I did NOT break your tooth. This is slander and I want a retraction." },
+    { clue: "In which mall did you get lost when you were young and we came back home to a flood", display: "VIJAY MALL",
+      comment: "Forever lost." },
+    { clue: "Who do you like the most amongst everybody in the world", display: "SAAKSHI",
+      comment: "Correct answer, obviously. Glad the system confirmed what we all already knew." }
+  ];
+
+  LEVELS.forEach(function(l){ l.answer = l.display.replace(/[^A-Za-z]/g,'').toUpperCase(); });
+
+  function maxGuessesFor(len){
+    if(len <= 6) return 6;
+    if(len <= 9) return 7;
+    return 5;
+  }
+  function cellSizeFor(len){
+    if(len <= 6) return 52;
+    if(len <= 9) return 42;
+    if(len <= 13) return 32;
+    return 24;
+  }
+
+  var state = { level: 0, guesses: [], current: "", finished: false, keyStatus: {} };
+
+  var el = {
+    boot: document.getElementById('boot'),
+    bootTerm: document.getElementById('bootTerm'),
+    startBtn: document.getElementById('startBtn'),
+    game: document.getElementById('game'),
+    clueIndex: document.getElementById('clueIndex'),
+    clueText: document.getElementById('clueText'),
+    grid: document.getElementById('grid'),
+    keyboard: document.getElementById('keyboard'),
+    msg: document.getElementById('msg'),
+    result: document.getElementById('result'),
+    resultTag: document.getElementById('resultTag'),
+    resultAnswer: document.getElementById('resultAnswer'),
+    resultClue: document.getElementById('resultClue'),
+    resultComment: document.getElementById('resultComment'),
+    continueBtn: document.getElementById('continueBtn'),
+    finale: document.getElementById('finale'),
+    recapList: document.getElementById('recapList'),
+    replayBtn: document.getElementById('replayBtn'),
+    hudLevel: document.getElementById('hudLevel'),
+    hudGuesses: document.getElementById('hudGuesses'),
+    trackFill: document.getElementById('trackFill')
+  };
+
+  function showScreen(id){
+    ['boot','game','result','finale'].forEach(function(s){
+      document.getElementById(s).classList.toggle('active', s===id);
+    });
+  }
+
+  // boot terminal typing effect
+  var bootLines = [
+    "> connecting to OASIS mainframe...",
+    "> identity confirmed: SANYA",
+    "> loading 10 encrypted memory shards...",
+    "> access granted."
+  ];
+  function typeBoot(i, cb){
+    if(i >= bootLines.length){ if(cb) cb(); return; }
+    var line = bootLines[i];
+    var buf = "";
+    var j = 0;
+    var iv = setInterval(function(){
+      buf += line[j];
+      el.bootTerm.textContent = (el.bootTerm.dataset.prev||"") + buf;
+      j++;
+      if(j >= line.length){
+        clearInterval(iv);
+        el.bootTerm.dataset.prev = (el.bootTerm.dataset.prev||"") + line + "\n";
+        setTimeout(function(){ typeBoot(i+1, cb); }, 220);
+      }
+    }, 18);
+  }
+  typeBoot(0);
+
+  el.startBtn.addEventListener('click', function(){
+    state.level = 0;
+    startLevel(0);
+    showScreen('game');
+    launchConfetti(28);
+  });
+  el.replayBtn.addEventListener('click', function(){
+    state.level = 0;
+    startLevel(0);
+    showScreen('game');
+  });
+  el.continueBtn.addEventListener('click', function(){
+    if(state.level >= LEVELS.length - 1){
+      renderFinale();
+      showScreen('finale');
+    } else {
+      state.level++;
+      startLevel(state.level);
+      showScreen('game');
+    }
+  });
+
+  function startLevel(idx){
+    var lvl = LEVELS[idx];
+    state.guesses = [];
+    state.current = "";
+    state.finished = false;
+    state.keyStatus = {};
+    state.maxGuesses = maxGuessesFor(lvl.answer.length);
+    state.cellSize = cellSizeFor(lvl.answer.length);
+
+    el.clueIndex.textContent = (idx+1) + " / " + LEVELS.length;
+    el.clueText.textContent = lvl.clue;
+    el.msg.textContent = "";
+    el.hudLevel.textContent = "LEVEL " + (idx+1) + " / " + LEVELS.length;
+    el.hudGuesses.textContent = state.maxGuesses + " ATTEMPTS";
+    el.trackFill.style.width = Math.round((idx / LEVELS.length) * 100) + "%";
+
+    buildGrid(lvl.answer.length, state.maxGuesses, state.cellSize);
+    buildKeyboard();
+  }
+
+  function buildGrid(len, rows, size){
+    el.grid.innerHTML = "";
+    for(var r=0;r<rows;r++){
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.dataset.row = r;
+      for(var c=0;c<len;c++){
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.width = size + 'px';
+        cell.style.height = size + 'px';
+        cell.style.fontSize = Math.max(12, size*0.42) + 'px';
+        row.appendChild(cell);
+      }
+      el.grid.appendChild(row);
+    }
+  }
+
+  var KROWS = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  function buildKeyboard(){
+    el.keyboard.innerHTML = "";
+    KROWS.forEach(function(rowStr, i){
+      var row = document.createElement('div');
+      row.className = 'krow';
+      if(i===2){
+        row.appendChild(makeKey('ENTER', true));
+      }
+      rowStr.split('').forEach(function(ch){
+        row.appendChild(makeKey(ch, false));
+      });
+      if(i===2){
+        row.appendChild(makeKey('DEL', true));
+      }
+      el.keyboard.appendChild(row);
+    });
+  }
+  function makeKey(label, wide){
+    var k = document.createElement('div');
+    k.className = 'key' + (wide ? ' wide' : '');
+    k.textContent = label;
+    k.dataset.key = label;
+    k.addEventListener('click', function(){ handleKey(label); });
+    return k;
+  }
+
+  function refreshKeyboardColors(){
+    var keys = el.keyboard.querySelectorAll('.key');
+    keys.forEach(function(k){
+      var letter = k.dataset.key;
+      var status = state.keyStatus[letter];
+      k.classList.remove('correct','present','absent');
+      if(status) k.classList.add(status);
+    });
+  }
+
+  function handleKey(label){
+    if(state.finished) return;
+    var lvl = LEVELS[state.level];
+    var len = lvl.answer.length;
+    if(label === 'ENTER'){
+      submitGuess();
+    } else if(label === 'DEL'){
+      state.current = state.current.slice(0,-1);
+      renderCurrentRow();
+    } else {
+      if(state.current.length < len && /^[A-Z]$/.test(label)){
+        state.current += label;
+        renderCurrentRow();
+      }
+    }
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(!el.game.classList.contains('active')) return;
+    var k = e.key.toUpperCase();
+    if(k === 'ENTER'){ handleKey('ENTER'); }
+    else if(k === 'BACKSPACE'){ handleKey('DEL'); }
+    else if(/^[A-Z]$/.test(k)){ handleKey(k); }
+  });
+
+  function renderCurrentRow(){
+    var rowIdx = state.guesses.length;
+    var row = el.grid.children[rowIdx];
+    if(!row) return;
+    var cells = row.children;
+    for(var i=0;i<cells.length;i++){
+      var ch = state.current[i] || "";
+      var wasEmpty = cells[i].textContent === "" && ch !== "";
+      cells[i].textContent = ch;
+      cells[i].classList.toggle('filled', ch !== "");
+      if(wasEmpty){
+        cells[i].classList.add('pop');
+        setTimeout(function(c){ return function(){ c.classList.remove('pop'); }; }(cells[i]), 160);
+      }
+    }
+  }
+
+  function evaluate(guess, answer){
+    var len = answer.length;
+    var result = new Array(len).fill('absent');
+    var answerArr = answer.split('');
+    var used = new Array(len).fill(false);
+    for(var i=0;i<len;i++){
+      if(guess[i] === answerArr[i]){
+        result[i] = 'correct';
+        used[i] = true;
+      }
+    }
+    for(var i=0;i<len;i++){
+      if(result[i] === 'correct') continue;
+      var found = -1;
+      for(var j2=0;j2<len;j2++){
+        if(!used[j2] && answerArr[j2] === guess[i]){ found = j2; break; }
+      }
+      if(found !== -1){
+        result[i] = 'present';
+        used[found] = true;
+      }
+    }
+    return result;
+  }
+
+  function submitGuess(){
+    var lvl = LEVELS[state.level];
+    var len = lvl.answer.length;
+    if(state.current.length < len){
+      shakeRow();
+      el.msg.textContent = "NOT ENOUGH LETTERS";
+      return;
+    }
+    el.msg.textContent = "";
+    var guess = state.current;
+    var result = evaluate(guess, lvl.answer);
+    var rowIdx = state.guesses.length;
+    var row = el.grid.children[rowIdx];
+
+    row.classList.add('flip');
+    Array.from(row.children).forEach(function(cell, i){
+      setTimeout(function(){
+        cell.classList.add(result[i]);
+      }, i*60 + 120);
+    });
+
+    // update keyboard status with priority correct > present > absent
+    guess.split('').forEach(function(ch, i){
+      var st = result[i];
+      var prev = state.keyStatus[ch];
+      var rank = { absent:0, present:1, correct:2 };
+      if(!prev || rank[st] > rank[prev]) state.keyStatus[ch] = st;
+    });
+    setTimeout(refreshKeyboardColors, len*60 + 200);
+
+    state.guesses.push(guess);
+    var won = guess === lvl.answer;
+    var outOfTries = state.guesses.length >= state.maxGuesses;
+
+    if(won){
+      state.finished = true;
+      setTimeout(function(){ showResult(true); }, len*60 + 500);
+    } else if(outOfTries){
+      state.finished = true;
+      setTimeout(function(){ showResult(false); }, len*60 + 500);
+    } else {
+      state.current = "";
+    }
+  }
+
+  function shakeRow(){
+    var rowIdx = state.guesses.length;
+    var row = el.grid.children[rowIdx];
+    if(!row) return;
+    row.classList.add('shake');
+    setTimeout(function(){ row.classList.remove('shake'); }, 400);
+  }
+
+  function showResult(won){
+    var lvl = LEVELS[state.level];
+    el.resultTag.textContent = won ? "LEVEL CLEARED" : "OUT OF ATTEMPTS";
+    el.resultTag.className = "result-tag " + (won ? "win" : "lose");
+    el.resultAnswer.textContent = lvl.display;
+    el.resultClue.textContent = "\u201C" + lvl.clue + "\u201D";
+    el.resultComment.textContent = won ? lvl.comment : (lvl.comment + " (...also, out of attempts. Rough round.)");
+    el.continueBtn.textContent = (state.level >= LEVELS.length - 1) ? "Finish" : "Continue";
+    showScreen('result');
+    if(won) launchConfetti(22);
+  }
+
+  function renderFinale(){
+    el.recapList.innerHTML = "";
+    LEVELS.forEach(function(lvl){
+      var row = document.createElement('div');
+      row.className = 'recap-row';
+      var q = document.createElement('span'); q.className = 'q'; q.textContent = lvl.clue;
+      var a = document.createElement('span'); a.className = 'a'; a.textContent = lvl.display;
+      row.appendChild(q); row.appendChild(a);
+      el.recapList.appendChild(row);
+    });
+    el.trackFill.style.width = "100%";
+    el.hudLevel.textContent = "SYSTEM UNLOCKED";
+    launchConfetti();
+  }
+
+  function launchConfetti(count){
+    count = count || 70;
+    var colors = ['#2ef4ff','#ff3fd8','#ffb020','#c04dff','#12c98a','#ff6ec7','#00e0c6'];
+    for(var i=0;i<count;i++){
+      (function(){
+        var c = document.createElement('div');
+        c.className = 'confetti';
+        var isRound = Math.random() > 0.5;
+        c.style.left = Math.random()*100 + 'vw';
+        c.style.background = colors[Math.floor(Math.random()*colors.length)];
+        c.style.width = (isRound ? 10 : 7) + 'px';
+        c.style.height = (isRound ? 10 : 15) + 'px';
+        c.style.borderRadius = isRound ? '50%' : '2px';
+        c.style.boxShadow = '0 0 8px ' + c.style.background;
+        c.style.animationDuration = (2.2 + Math.random()*2.8) + 's';
+        c.style.animationDelay = (Math.random()*0.4) + 's';
+        c.style.opacity = 0.8 + Math.random()*0.2;
+        document.body.appendChild(c);
+        setTimeout(function(){ c.remove(); }, 6200);
+      })();
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
